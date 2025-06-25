@@ -1,5 +1,8 @@
+import * as Sentry from '@sentry/nextjs';
+
 import { getCustomer } from '@/lib/queries/getCustomer';
 import BackButton from '@/components/BackButton';
+import CustomerForm from './components/CustomerForm';
 
 type Props = {
   searchParams: Promise<{ [key: string]: string } | undefined>;
@@ -7,7 +10,7 @@ type Props = {
 
 export default async function CustomerFormPage({ searchParams }: Props) {
   try {
-    const customerId = (await searchParams)?.id;
+    const customerId = (await searchParams)?.customerId;
 
     if (customerId) {
       const customer = await getCustomer(parseInt(customerId));
@@ -24,11 +27,14 @@ export default async function CustomerFormPage({ searchParams }: Props) {
       }
       console.log('Customer data:', customer);
       // put details of the customer form here
+      return <CustomerForm customer={customer} />;
     } else {
       // new form customer
+      return <CustomerForm />;
     }
   } catch (error) {
     if (error instanceof Error) {
+      Sentry.captureException(error);
       throw new Error(`Failed to load customer data: ${error.message}`);
     }
   }

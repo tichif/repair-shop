@@ -1,6 +1,9 @@
+import * as Sentry from '@sentry/nextjs';
+
 import { getCustomer } from '@/lib/queries/getCustomer';
 import BackButton from '@/components/BackButton';
 import { getTicket } from '@/lib/queries/getTicket';
+import TicketForm from './components/TicketForm';
 
 type Props = {
   searchParams: Promise<{ [key: string]: string } | undefined>;
@@ -36,6 +39,7 @@ const TicketFormPage = async ({ searchParams }: Props) => {
         );
       }
       console.log('Customer data:', customer);
+      return <TicketForm customer={customer} />;
       // put details of the customer form here
     }
 
@@ -85,9 +89,11 @@ const TicketFormPage = async ({ searchParams }: Props) => {
       // return ticket form
       console.log('Ticket data:', ticket);
       console.log('Customer data:', customer);
+      return <TicketForm customer={customer} ticket={ticket} />;
     }
   } catch (error) {
     if (error instanceof Error) {
+      Sentry.captureException(error);
       throw new Error(`Failed to load data: ${error.message}`);
     }
   }
