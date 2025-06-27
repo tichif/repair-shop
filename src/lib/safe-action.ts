@@ -19,7 +19,7 @@ export const actionClient = createSafeActionClient({
       return scope;
     });
 
-    if (error.constructor.name === 'DatabaseError') {
+    if (error.constructor.name === 'DrizzleQueryError') {
       return 'Database error occurred. Please try again later.';
     }
 
