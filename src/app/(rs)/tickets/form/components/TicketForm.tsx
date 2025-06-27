@@ -52,7 +52,7 @@ const TicketForm = ({ customer, ticket, techs, isEditable = true }: Props) => {
   const {
     execute: executeSave,
     result: saveResult,
-    isExecuting: isSaving,
+    isPending: isSaving,
     reset: resetAction,
   } = useAction(saveTicketAction, {
     onSuccess({ data }) {
