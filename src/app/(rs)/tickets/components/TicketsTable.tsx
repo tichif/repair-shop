@@ -1,11 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
   getPaginationRowModel,
+  ColumnFiltersState,
+  getFilteredRowModel,
+  getFacetedUniqueValues,
 } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { CircleCheck, CircleXIcon } from 'lucide-react';
@@ -20,6 +24,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import Filter from '@/components/react-table/Filter';
 
 type Props = {
   data: TicketSearchResultType;
@@ -28,6 +33,8 @@ type RowType = TicketSearchResultType[0];
 
 const TicketTable = ({ data }: Props) => {
   const router = useRouter();
+
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const columnHeaderArray: Array<keyof RowType> = [
     'title',
@@ -86,6 +93,9 @@ const TicketTable = ({ data }: Props) => {
   const table = useReactTable({
     data: data,
     columns,
+    state: {
+      columnFilters,
+    },
     initialState: {
       pagination: {
         pageSize: 10,
@@ -93,6 +103,9 @@ const TicketTable = ({ data }: Props) => {
     },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
   return (
@@ -105,7 +118,7 @@ const TicketTable = ({ data }: Props) => {
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id} className='bg-secondary'>
+                      <TableHead key={header.id} className='bg-secondary p-1'>
                         <div>
                           {header.isPlaceholder
                             ? null
@@ -114,6 +127,11 @@ const TicketTable = ({ data }: Props) => {
                                 header.getContext()
                               )}
                         </div>
+                        {header.column.getCanFilter() && (
+                          <div className='grid place-content-center'>
+                            <Filter column={header.column} />
+                          </div>
+                        )}
                       </TableHead>
                     );
                   })}
@@ -162,6 +180,9 @@ const TicketTable = ({ data }: Props) => {
           </p>
         </div>
         <div className='space-x-1'>
+          <Button variant='outline' onClick={() => table.resetColumnFilters()}>
+            Reset
+          </Button>
           <Button
             variant='outline'
             onClick={() => table.previousPage()}
