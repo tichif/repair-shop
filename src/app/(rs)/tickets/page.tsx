@@ -1,6 +1,7 @@
 import TicketSearch from './form/components/TicketSearch';
 import { getTicketSearchResult } from '@/lib/queries/getTicketSearchResult';
 import { getOpenTicket } from '@/lib/queries/getOpenTicket';
+import TicketTable from './components/TicketsTable';
 
 export const metadata = {
   title: 'Tickets',
@@ -18,7 +19,11 @@ const TicketsPage = async ({ searchParams }: Props) => {
     return (
       <>
         <TicketSearch />
-        <p>{JSON.stringify(results)}</p>
+        {results.length > 0 ? (
+          <TicketTable data={results} />
+        ) : (
+          <p>No results fond</p>
+        )}
       </>
     );
   }
@@ -28,8 +33,11 @@ const TicketsPage = async ({ searchParams }: Props) => {
   return (
     <>
       <TicketSearch />
-      <p>{JSON.stringify(results)}</p>
-      {/* query search result */}
+      {results.length > 0 ? (
+        <TicketTable data={results} />
+      ) : (
+        <p>No results fond</p>
+      )}
     </>
   );
 };
