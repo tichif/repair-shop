@@ -5,6 +5,7 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  getPaginationRowModel,
 } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
 import { CircleCheck, CircleXIcon } from 'lucide-react';
@@ -18,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 
 type Props = {
   data: TicketSearchResultType;
@@ -84,59 +86,98 @@ const TicketTable = ({ data }: Props) => {
   const table = useReactTable({
     data: data,
     columns,
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
   });
 
   return (
-    <div className='mt-6 rounded-lg overflow-hidden border-border'>
-      <Table className='border'>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => {
-            return (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className='bg-secondary'>
-                      <div>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </div>
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            );
-          })}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => {
-            return (
-              <TableRow
-                key={row.id}
-                onClick={() =>
-                  router.push(`/tickets/form?ticketId=${row.original.id}`)
-                }
-                className='cursor-pointer hover:bg-border/25 dark:hover:bg-ring/40'
-              >
-                {row.getVisibleCells().map((cell) => {
-                  return (
-                    <TableCell key={cell.id} className='border'>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  );
-                })}
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+    <div className='mt-6 flex flex-col gap-4'>
+      <div className='rounded-lg overflow-hidden border-border'>
+        <Table className='border'>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => {
+              return (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} className='bg-secondary'>
+                        <div>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </div>
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.map((row) => {
+              return (
+                <TableRow
+                  key={row.id}
+                  onClick={() =>
+                    router.push(`/tickets/form?ticketId=${row.original.id}`)
+                  }
+                  className='cursor-pointer hover:bg-border/25 dark:hover:bg-ring/40'
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    return (
+                      <TableCell key={cell.id} className='border'>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+      <div className='flex justify-between items-center'>
+        <div className='flex basis-1/3 items-center'>
+          <p className='whitespace-nowrap font-bold'>
+            {`Page ${
+              table.getState().pagination.pageIndex + 1
+            } of ${table.getPageCount()}`}
+            &nbsp;&nbsp;
+            {`[${table.getFilteredRowModel().rows.length} ${
+              table.getFilteredRowModel().rows.length === 1
+                ? 'result'
+                : 'results'
+            }]`}
+          </p>
+        </div>
+        <div className='space-x-1'>
+          <Button
+            variant='outline'
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Prev
+          </Button>
+          <Button
+            variant='outline'
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

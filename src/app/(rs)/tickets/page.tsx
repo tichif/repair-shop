@@ -22,7 +22,7 @@ const TicketsPage = async ({ searchParams }: Props) => {
         {results.length > 0 ? (
           <TicketTable data={results} />
         ) : (
-          <p>No results fond</p>
+          <p className='mt-4'>No results fond</p>
         )}
       </>
     );
@@ -36,7 +36,7 @@ const TicketsPage = async ({ searchParams }: Props) => {
       {results.length > 0 ? (
         <TicketTable data={results} />
       ) : (
-        <p>No results fond</p>
+        <p className='mt-4'>No results fond</p>
       )}
     </>
   );
