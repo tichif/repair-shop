@@ -5,8 +5,11 @@ import {
   flexRender,
   getCoreRowModel,
   useReactTable,
+  CellContext,
 } from '@tanstack/react-table';
 import { useRouter } from 'next/navigation';
+import { MoreHorizontal, TableOfContents } from 'lucide-react';
+import Link from 'next/link';
 
 import { type selectCustomerSchemaType } from '@/zod-schemas/customer';
 import {
@@ -17,6 +20,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 
 type Props = {
   data: selectCustomerSchemaType[];
@@ -36,6 +48,45 @@ const CustomersTable = ({ data }: Props) => {
 
   const columnHelper = createColumnHelper<selectCustomerSchemaType>();
 
+  const ActionCell = ({
+    row,
+  }: CellContext<selectCustomerSchemaType, unknown>) => {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant='ghost' size='icon' className='h-8 w-8 p-0'>
+            <span className='sr-only'>Open Menu</span>
+            <MoreHorizontal className='h-4 w-4' />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end'>
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem>
+            <Link
+              href={`/tickets/form?customerId=${row.original.id}`}
+              className='w-full'
+              prefetch={false}
+            >
+              New Ticket
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <Link
+              href={`/customers/form?customerId=${row.original.id}`}
+              className='w-full'
+              prefetch={false}
+            >
+              Edit Customer
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+  ActionCell.displayName = 'ActionCell'; //prevent eslint error for displayName
+
   // const columns = [
   //   columnHelper.accessor('firstName', {
   //     header: 'First Name',
@@ -45,12 +96,19 @@ const CustomersTable = ({ data }: Props) => {
   //   }),
   // ];
 
-  const columns = columnHeaderArray.map((columnName) => {
-    return columnHelper.accessor(columnName, {
-      id: columnName,
-      header: columnName.charAt(0).toUpperCase() + columnName.slice(1),
-    });
-  });
+  const columns = [
+    columnHelper.display({
+      id: 'Actions',
+      header: () => <TableOfContents />,
+      cell: ActionCell,
+    }),
+    ...columnHeaderArray.map((columnName) => {
+      return columnHelper.accessor(columnName, {
+        id: columnName,
+        header: columnName.charAt(0).toUpperCase() + columnName.slice(1),
+      });
+    }),
+  ];
 
   const table = useReactTable({
     data,
@@ -67,8 +125,19 @@ const CustomersTable = ({ data }: Props) => {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className='bg-secondary'>
-                      <div>
+                    <TableHead
+                      key={header.id}
+                      className={`bg-secondary ${
+                        header.id === 'Actions' ? 'w-12' : ''
+                      }`}
+                    >
+                      <div
+                        className={`bg-secondary ${
+                          header.id === 'Actions'
+                            ? 'flex justify-center items-center'
+                            : ''
+                        }`}
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -88,9 +157,6 @@ const CustomersTable = ({ data }: Props) => {
             return (
               <TableRow
                 key={row.id}
-                onClick={() =>
-                  router.push(`/customers/form?customerId=${row.original.id}`)
-                }
                 className='cursor-pointer hover:bg-border/25 dark:hover:bg-ring/40'
               >
                 {row.getVisibleCells().map((cell) => {

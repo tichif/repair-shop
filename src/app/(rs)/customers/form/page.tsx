@@ -47,10 +47,16 @@ export default async function CustomerFormPage({ searchParams }: Props) {
       }
 
       // put details of the customer form here
-      return <CustomerForm customer={customer} isManager={isManager} />;
+      return (
+        <CustomerForm
+          key={customerId}
+          customer={customer}
+          isManager={isManager}
+        />
+      );
     } else {
       // new form customer
-      return <CustomerForm isManager={isManager} />;
+      return <CustomerForm key='new' isManager={isManager} />;
     }
   } catch (error) {
     if (error instanceof Error) {
