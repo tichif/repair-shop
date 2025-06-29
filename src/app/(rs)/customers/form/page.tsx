@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
+import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
 
 import { getCustomer } from '@/lib/queries/getCustomer';
 import BackButton from '@/components/BackButton';
@@ -25,6 +26,10 @@ export async function generateMetadata({ searchParams }: Props) {
 
 export default async function CustomerFormPage({ searchParams }: Props) {
   try {
+    const { getPermission } = getKindeServerSession();
+    const managerPermission = await getPermission('manager');
+    const isManager = managerPermission?.isGranted;
+
     const customerId = (await searchParams)?.customerId;
 
     if (customerId) {
@@ -40,12 +45,12 @@ export default async function CustomerFormPage({ searchParams }: Props) {
           </>
         );
       }
-      console.log('Customer data:', customer);
+
       // put details of the customer form here
-      return <CustomerForm customer={customer} />;
+      return <CustomerForm customer={customer} isManager={isManager} />;
     } else {
       // new form customer
-      return <CustomerForm />;
+      return <CustomerForm isManager={isManager} />;
     }
   } catch (error) {
     if (error instanceof Error) {

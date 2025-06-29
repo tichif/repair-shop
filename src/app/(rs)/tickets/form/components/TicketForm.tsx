@@ -29,18 +29,23 @@ type Props = {
     description: string;
   }[];
   isEditable?: boolean;
+  isManager?: boolean;
 };
 
-const TicketForm = ({ customer, ticket, techs, isEditable = true }: Props) => {
-  const isManager = Array.isArray(techs);
-
+const TicketForm = ({
+  customer,
+  ticket,
+  techs,
+  isEditable = true,
+  isManager = false,
+}: Props) => {
   const defaultValues: createTicketSchemaType = {
     id: ticket?.id ?? 'New',
     customerId: ticket?.customerId ?? customer.id,
     title: ticket?.title ?? '',
     description: ticket?.description ?? '',
     completed: ticket?.completed ?? false,
-    tech: ticket?.tech ?? 'new-ticket@example.com',
+    tech: ticket?.tech.toLowerCase() ?? 'new-ticket@example.com',
   };
 
   const form = useForm<createTicketSchemaType>({
@@ -92,7 +97,7 @@ const TicketForm = ({ customer, ticket, techs, isEditable = true }: Props) => {
                 nameInSchema='title'
                 disabled={!isEditable}
               />
-              {isManager ? (
+              {isManager && techs ? (
                 <SelectWithLabel<createTicketSchemaType>
                   fieldTitle='Tech ID'
                   nameInSchema='tech'
