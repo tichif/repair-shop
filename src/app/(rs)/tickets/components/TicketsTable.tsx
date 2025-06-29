@@ -13,7 +13,7 @@ import {
   SortingState,
   getSortedRowModel,
 } from '@tanstack/react-table';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   CircleCheck,
   CircleXIcon,
@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import Filter from '@/components/react-table/Filter';
+import { usePolling } from '@/hooks/usePolling';
 
 type Props = {
   data: TicketSearchResultType;
@@ -42,6 +43,8 @@ type RowType = TicketSearchResultType[0];
 const TicketTable = ({ data }: Props) => {
   const router = useRouter();
 
+  const searchParams = useSearchParams();
+
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = useState<SortingState>([
     {
@@ -49,6 +52,9 @@ const TicketTable = ({ data }: Props) => {
       desc: false, //false for ascending, true for descending
     },
   ]);
+
+  // Polling to refresh data every 6 seconds
+  usePolling(6000, searchParams.get('searchText'));
 
   const columnHeaderArray: Array<keyof RowType> = [
     'title',
