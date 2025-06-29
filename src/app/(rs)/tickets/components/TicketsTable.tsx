@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   createColumnHelper,
   flexRender,
@@ -55,6 +55,11 @@ const TicketTable = ({ data }: Props) => {
 
   // Polling to refresh data every 6 seconds
   usePolling(6000, searchParams.get('searchText'));
+
+  const pageIndex = useMemo(() => {
+    const page = searchParams.get('page');
+    return page ? parseInt(page) - 1 : 0;
+  }, [searchParams.get('page')]);
 
   const columnHeaderArray: Array<keyof RowType> = [
     'title',
@@ -136,10 +141,9 @@ const TicketTable = ({ data }: Props) => {
     state: {
       columnFilters,
       sorting,
-    },
-    initialState: {
       pagination: {
         pageSize: 10,
+        pageIndex,
       },
     },
     onColumnFiltersChange: setColumnFilters,
@@ -208,8 +212,8 @@ const TicketTable = ({ data }: Props) => {
           </TableBody>
         </Table>
       </div>
-      <div className='flex justify-between items-center'>
-        <div className='flex basis-1/3 items-center'>
+      <div className='flex justify-between items-center gap-1 flex-wrap'>
+        <div>
           <p className='whitespace-nowrap font-bold'>
             {`Page ${
               table.getState().pagination.pageIndex + 1
@@ -222,27 +226,49 @@ const TicketTable = ({ data }: Props) => {
             }]`}
           </p>
         </div>
-        <div className='space-x-1'>
-          <Button variant='outline' onClick={() => table.resetColumnFilters()}>
-            Reset Filters
-          </Button>
-          <Button variant='outline' onClick={() => table.resetSorting()}>
-            Reset Sorting
-          </Button>
-          <Button
-            variant='outline'
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Prev
-          </Button>
-          <Button
-            variant='outline'
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+        <div className='flex-flex-row-gap-1'>
+          <div className='flex-flex-row-gap-1'>
+            <Button variant='outline' onClick={() => router.refresh()}>
+              Refresh Data
+            </Button>
+            <Button
+              variant='outline'
+              onClick={() => table.resetColumnFilters()}
+            >
+              Reset Filters
+            </Button>
+            <Button variant='outline' onClick={() => table.resetSorting()}>
+              Reset Sorting
+            </Button>
+          </div>
+          <div className='flex-flex-row-gap-1'>
+            <Button
+              variant='outline'
+              onClick={() => {
+                const newIndex = table.getState().pagination.pageIndex - 1;
+                table.setPageIndex(newIndex);
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('page', String(newIndex + 1).toString());
+                router.push(`?${params.toString()}`, { scroll: false });
+              }}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Prev
+            </Button>
+            <Button
+              variant='outline'
+              onClick={() => {
+                const newIndex = table.getState().pagination.pageIndex + 1;
+                table.setPageIndex(newIndex);
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('page', String(newIndex + 1).toString());
+                router.push(`?${params.toString()}`, { scroll: false });
+              }}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </div>
     </div>
