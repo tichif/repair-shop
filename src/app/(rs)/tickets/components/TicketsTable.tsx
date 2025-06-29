@@ -53,8 +53,8 @@ const TicketTable = ({ data }: Props) => {
     },
   ]);
 
-  // Polling to refresh data every 6 seconds
-  usePolling(6000, searchParams.get('searchText'));
+  // Polling to refresh data every 60 seconds
+  usePolling(360000, searchParams.get('searchText'));
 
   const pageIndex = useMemo(() => {
     const page = searchParams.get('page');
@@ -62,14 +62,22 @@ const TicketTable = ({ data }: Props) => {
   }, [searchParams.get('page')]);
 
   const columnHeaderArray: Array<keyof RowType> = [
-    'title',
     'createdAt',
+    'title',
     'tech',
     'firstName',
     'lastName',
     'email',
     'completed',
   ];
+
+  const columnWidth = {
+    completed: 150,
+    createdAt: 150,
+    title: 250,
+    tech: 225,
+    email: 225,
+  };
 
   const columnHelper = createColumnHelper<RowType>();
 
@@ -94,6 +102,7 @@ const TicketTable = ({ data }: Props) => {
       },
       {
         id: columnName,
+        size: columnWidth[columnName as keyof typeof columnWidth] ?? undefined,
         header: ({ column }) => {
           return (
             <Button
@@ -165,7 +174,11 @@ const TicketTable = ({ data }: Props) => {
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id} className='bg-secondary p-1'>
+                      <TableHead
+                        key={header.id}
+                        className='bg-secondary p-1'
+                        style={{ width: header.getSize() }}
+                      >
                         <div>
                           {header.isPlaceholder
                             ? null
@@ -176,7 +189,14 @@ const TicketTable = ({ data }: Props) => {
                         </div>
                         {header.column.getCanFilter() && (
                           <div className='grid place-content-center'>
-                            <Filter column={header.column} />
+                            <Filter
+                              column={header.column}
+                              filteredRows={table
+                                .getFilteredRowModel()
+                                .rows.map((row) =>
+                                  row.getValue(header.column.id)
+                                )}
+                            />
                           </div>
                         )}
                       </TableHead>
@@ -212,24 +232,29 @@ const TicketTable = ({ data }: Props) => {
           </TableBody>
         </Table>
       </div>
+
       <div className='flex justify-between items-center gap-1 flex-wrap'>
         <div>
           <p className='whitespace-nowrap font-bold'>
-            {`Page ${
-              table.getState().pagination.pageIndex + 1
-            } of ${table.getPageCount()}`}
+            {`Page ${table.getState().pagination.pageIndex + 1} of ${Math.max(
+              1,
+              table.getPageCount()
+            )}`}
             &nbsp;&nbsp;
             {`[${table.getFilteredRowModel().rows.length} ${
-              table.getFilteredRowModel().rows.length === 1
-                ? 'result'
-                : 'results'
+              table.getFilteredRowModel().rows.length !== 1
+                ? 'total results'
+                : 'result'
             }]`}
           </p>
         </div>
-        <div className='flex-flex-row-gap-1'>
-          <div className='flex-flex-row-gap-1'>
+        <div className='flex flex-row gap-1'>
+          <div className='flex flex-row gap-1'>
             <Button variant='outline' onClick={() => router.refresh()}>
               Refresh Data
+            </Button>
+            <Button variant='outline' onClick={() => table.resetSorting()}>
+              Reset Sorting
             </Button>
             <Button
               variant='outline'
@@ -237,23 +262,20 @@ const TicketTable = ({ data }: Props) => {
             >
               Reset Filters
             </Button>
-            <Button variant='outline' onClick={() => table.resetSorting()}>
-              Reset Sorting
-            </Button>
           </div>
-          <div className='flex-flex-row-gap-1'>
+          <div className='flex flex-row gap-1'>
             <Button
               variant='outline'
               onClick={() => {
                 const newIndex = table.getState().pagination.pageIndex - 1;
                 table.setPageIndex(newIndex);
                 const params = new URLSearchParams(searchParams.toString());
-                params.set('page', String(newIndex + 1).toString());
-                router.push(`?${params.toString()}`, { scroll: false });
+                params.set('page', (newIndex + 1).toString());
+                router.replace(`?${params.toString()}`, { scroll: false });
               }}
               disabled={!table.getCanPreviousPage()}
             >
-              Prev
+              Previous
             </Button>
             <Button
               variant='outline'
@@ -261,8 +283,8 @@ const TicketTable = ({ data }: Props) => {
                 const newIndex = table.getState().pagination.pageIndex + 1;
                 table.setPageIndex(newIndex);
                 const params = new URLSearchParams(searchParams.toString());
-                params.set('page', String(newIndex + 1).toString());
-                router.push(`?${params.toString()}`, { scroll: false });
+                params.set('page', (newIndex + 1).toString());
+                router.replace(`?${params.toString()}`, { scroll: false });
               }}
               disabled={!table.getCanNextPage()}
             >
